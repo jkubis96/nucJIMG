@@ -29,7 +29,9 @@ dependencies = [
                 "matplotlib-venn (>=1.1.2,<2.0.0)",
                 "stardist",
                 "setuptools (>=80.9.0,<81.0.0)",
-                "tensorflow (>=2.20.0,<3.0.0)"
+                "tensorflow (>=2.20.0,<3.0.0)",
+                "gdown (>=5.2.0,<6.0.0)",
+                "harmonypy (>=0.0.10,<0.0.11)"
                             ]
 
 

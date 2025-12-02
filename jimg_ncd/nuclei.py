@@ -11,6 +11,7 @@ from collections import Counter
 from io import BytesIO
 
 import cv2
+import harmonypy as harmonize
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -20,9 +21,12 @@ import skimage
 import umap
 from csbdeep.utils import normalize
 from skimage import measure
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
 from stardist.models import StarDist2D
 from stardist.plot import render_label
 from tqdm import tqdm
+import seaborn as sns
 
 pio.renderers.default = "browser"
 
@@ -196,7 +200,9 @@ class RepTools:
             The maximum distance between any two points in the contour.
         """
 
-        return np.max(pdist(contour))
+        rect = cv2.minAreaRect(contour)
+        (w, h) = rect[1]
+        return max(w, h)
 
     def compute_perimeter(self, contour):
         """
@@ -354,9 +360,6 @@ class RepTools:
                     )
                     to_concat_dict["feret_diameter_max"] = [feret_diameter]
                     to_concat_dict["solidity"] = [np.mean(to_concat_dict["solidity"])]
-                    to_concat_dict["orientation"] = [
-                        np.sum(to_concat_dict["orientation"])
-                    ]
                     to_concat_dict["perimeter"] = [np.sum(to_concat_dict["perimeter"])]
                     to_concat_dict["perimeter_crofton"] = [
                         np.sum(to_concat_dict["perimeter_crofton"])
@@ -1628,7 +1631,6 @@ class NucleiFinder(ImageTools, RepTools):
             "equivalent_diameter_area": [],
             "feret_diameter_max": [],
             "solidity": [],
-            "orientation": [],
             "perimeter": [],
             "perimeter_crofton": [],
             "circularity": [],
@@ -1640,8 +1642,12 @@ class NucleiFinder(ImageTools, RepTools):
         }
 
         for region in skimage.measure.regionprops(model_out, intensity_image=image):
+
             # Compute circularity
-            circularity = 4 * np.pi * region.area / (region.perimeter**2)
+            if region.perimeter > 0:
+                circularity = 4 * np.pi * region.area / (region.perimeter**2)
+            else:
+                circularity = 0
 
             features["area"].append(region.area)
             features["area_bbox"].append(region.area_bbox)
@@ -1653,7 +1659,6 @@ class NucleiFinder(ImageTools, RepTools):
             features["equivalent_diameter_area"].append(region.equivalent_diameter_area)
             features["feret_diameter_max"].append(region.feret_diameter_max)
             features["solidity"].append(region.solidity)
-            features["orientation"].append(region.orientation)
             features["perimeter"].append(region.perimeter)
             features["perimeter_crofton"].append(region.perimeter_crofton)
             features["label"].append(region.label)
@@ -1699,8 +1704,8 @@ class NucleiFinder(ImageTools, RepTools):
         StarDist2D.from_pretrained()
         model = StarDist2D.from_pretrained("2D_versatile_fluo")
 
-        nmst = [0, 0.2, 0.4, 0.6, 0.8]
-        probt = [0.1, 0.3, 0.5, 0.7]
+        nmst = [0.1, 0.2, 0.6]
+        probt = [0.1, 0.5, 0.9]
 
         try:
             img = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
@@ -1728,8 +1733,11 @@ class NucleiFinder(ImageTools, RepTools):
 
         plot.append(fig)
 
-        for n in tqdm(nmst):
-            for t in probt:
+        for n in tqdm(nmst, desc="Loop 1: nmst"):
+            print(f"\n➡️ Starting outer loop for n = {n}")
+
+            for t in tqdm(probt, desc=f"   ↳ Loop 2 for n={n}", leave=False):
+                print(f"   → Starting inner loop for t = {t}")
 
                 labels, _ = model.predict_instances(
                     normalize(img.copy()), nms_thresh=n, prob_thresh=t
@@ -1839,7 +1847,6 @@ class NucleiFinder(ImageTools, RepTools):
 
         To set new parameters, use:
             - ``set_nuclei_circularity()``
-            - ``set_nuclei_yx_len_min_ratio()``
             - ``set_nuclei_size()``
             - ``set_nuclei_min_mean_intensity()``
 
@@ -1974,7 +1981,6 @@ class NucleiFinder(ImageTools, RepTools):
                 "equivalent_diameter_area": [],
                 "feret_diameter_max": [],
                 "solidity": [],
-                "orientation": [],
                 "perimeter": [],
                 "perimeter_crofton": [],
                 "coords": [],
@@ -2053,7 +2059,6 @@ class NucleiFinder(ImageTools, RepTools):
                         region.feret_diameter_max
                     )
                     chromatione_info["solidity"].append(region.solidity)
-                    chromatione_info["orientation"].append(region.orientation)
                     chromatione_info["perimeter"].append(region.perimeter)
                     chromatione_info["perimeter_crofton"].append(
                         region.perimeter_crofton
@@ -2104,7 +2109,6 @@ class NucleiFinder(ImageTools, RepTools):
             nuclei_dictionary["spot_eccentricity"] = []
             nuclei_dictionary["spot_size_equivalent_diameter_area"] = []
             nuclei_dictionary["spot_feret_diameter_max"] = []
-            nuclei_dictionary["spot_orientation"] = []
             nuclei_dictionary["spot_perimeter"] = []
             nuclei_dictionary["spot_perimeter_crofton"] = []
 
@@ -2120,7 +2124,6 @@ class NucleiFinder(ImageTools, RepTools):
                 spot_eccentricity = []
                 spot_size_equivalent_diameter_area = []
                 spot_feret_diameter_max = []
-                spot_orientation = []
                 spot_perimeter = []
                 spot_perimeter_crofton = []
 
@@ -2172,7 +2175,6 @@ class NucleiFinder(ImageTools, RepTools):
                             spot_feret_diameter_max.append(
                                 chromation_dic["feret_diameter_max"][j]
                             )
-                            spot_orientation.append(chromation_dic["orientation"][j])
                             spot_perimeter.append(chromation_dic["perimeter"][j])
                             spot_perimeter_crofton.append(
                                 chromation_dic["perimeter_crofton"][j]
@@ -2195,7 +2197,6 @@ class NucleiFinder(ImageTools, RepTools):
                 nuclei_dictionary["spot_feret_diameter_max"].append(
                     spot_feret_diameter_max
                 )
-                nuclei_dictionary["spot_orientation"].append(spot_orientation)
                 nuclei_dictionary["spot_perimeter"].append(spot_perimeter)
                 nuclei_dictionary["spot_perimeter_crofton"].append(
                     spot_perimeter_crofton
@@ -2302,7 +2303,6 @@ class NucleiFinder(ImageTools, RepTools):
                 "equivalent_diameter_area": [],
                 "feret_diameter_max": [],
                 "solidity": [],
-                "orientation": [],
                 "perimeter": [],
                 "perimeter_crofton": [],
                 "coords": [],
@@ -2381,7 +2381,6 @@ class NucleiFinder(ImageTools, RepTools):
                         region.feret_diameter_max
                     )
                     chromatione_info["solidity"].append(region.solidity)
-                    chromatione_info["orientation"].append(region.orientation)
                     chromatione_info["perimeter"].append(region.perimeter)
                     chromatione_info["perimeter_crofton"].append(
                         region.perimeter_crofton
@@ -2432,7 +2431,6 @@ class NucleiFinder(ImageTools, RepTools):
             nuclei_dictionary["spot_eccentricity"] = []
             nuclei_dictionary["spot_size_equivalent_diameter_area"] = []
             nuclei_dictionary["spot_feret_diameter_max"] = []
-            nuclei_dictionary["spot_orientation"] = []
             nuclei_dictionary["spot_perimeter"] = []
             nuclei_dictionary["spot_perimeter_crofton"] = []
 
@@ -2448,7 +2446,6 @@ class NucleiFinder(ImageTools, RepTools):
                 spot_eccentricity = []
                 spot_size_equivalent_diameter_area = []
                 spot_feret_diameter_max = []
-                spot_orientation = []
                 spot_perimeter = []
                 spot_perimeter_crofton = []
 
@@ -2500,7 +2497,6 @@ class NucleiFinder(ImageTools, RepTools):
                             spot_feret_diameter_max.append(
                                 chromation_dic["feret_diameter_max"][j]
                             )
-                            spot_orientation.append(chromation_dic["orientation"][j])
                             spot_perimeter.append(chromation_dic["perimeter"][j])
                             spot_perimeter_crofton.append(
                                 chromation_dic["perimeter_crofton"][j]
@@ -2523,7 +2519,6 @@ class NucleiFinder(ImageTools, RepTools):
                 nuclei_dictionary["spot_feret_diameter_max"].append(
                     spot_feret_diameter_max
                 )
-                nuclei_dictionary["spot_orientation"].append(spot_orientation)
                 nuclei_dictionary["spot_perimeter"].append(spot_perimeter)
                 nuclei_dictionary["spot_perimeter_crofton"].append(
                     spot_perimeter_crofton
@@ -2626,7 +2621,6 @@ class NucleiFinder(ImageTools, RepTools):
             - ``set_adj_image_contrast()``
             - ``set_adj_image_brightness()``
             - ``set_nuclei_circularity()``
-            - ``set_nuclei_yx_len_min_ratio()``
             - ``set_nuclei_size()``
             - ``set_nuclei_min_mean_intensity()``
             - ``set_chromatinization_size()``
@@ -2803,7 +2797,6 @@ class NucleiFinder(ImageTools, RepTools):
             - ``set_adj_image_contrast()``
             - ``set_adj_image_brightness()``
             - ``set_nuclei_circularity()``
-            - ``set_nuclei_yx_len_min_ratio()``
             - ``set_nuclei_size()``
             - ``set_nuclei_min_mean_intensity()``
 
@@ -3042,8 +3035,17 @@ class NucleiDataManagement:
 
             for k in nuclei_data.keys():
                 self.nuceli_data[k] = nuclei_data[k]["stats"]
+
+            for k in self.nuceli_data.keys():
+                if "coords" in self.nuceli_data[k].keys():
+                    self.nuceli_data[k].pop("coords")
+
         else:
             self.nuceli_data = nuclei_data
+
+            for k in self.nuceli_data.keys():
+                if "coords" in self.nuceli_data[k].keys():
+                    self.nuceli_data[k].pop("coords")
 
         self.experiment_name = experiment_name
         """Name of the experiment."""
@@ -3113,7 +3115,6 @@ class NucleiDataManagement:
                     "nuclei_feret_diameter_max": nuclei_data[i]["feret_diameter_max"][
                         n
                     ],
-                    "nuclei_orientation": nuclei_data[i]["orientation"][n],
                     "nuclei_axis_major_length": nuclei_data[i]["axis_major_length"][n],
                     "nuclei_axis_minor_length": nuclei_data[i]["axis_minor_length"][n],
                     "nuclei_circularity": nuclei_data[i]["circularity"][n],
@@ -3192,9 +3193,9 @@ class NucleiDataManagement:
 
         nuclei_df = pd.DataFrame(data)
 
-        nuclei_df["nuclei_per_cell"] = nuclei_df.groupby("id_name")[
-            "id_name"
-        ].transform("count")
+        nuclei_df["nuclei_per_img"] = nuclei_df.groupby("id_name")["id_name"].transform(
+            "count"
+        )
         nuclei_df["set"] = self.experiment_name
 
         self.nuceli_data_df = nuclei_df
@@ -3506,7 +3507,7 @@ class GroupAnalysis:
     DFA(meta_group_by='sets', sets={}, n_proc=5):
         Perform Differential Feature Analysis.
 
-    proportion_analysis(grouping_col='sets', val_col='nuclei_per_cell', ...):
+    proportion_analysis(grouping_col='sets', val_col='nuclei_per_img', ...):
         Perform and plot proportion analysis across groups.
     """
 
@@ -3839,81 +3840,6 @@ class GroupAnalysis:
 
                 return self.UMAP_plot["static"]
 
-    def save_UMAP_plots(self, path="", name="", extension="svg"):
-        """
-        Save the UMAP plots to a specified directory.
-
-        This method saves plots generated by ``UMAP()`` and/or ``UMAP_on_clusters()``.
-
-        Parameters
-        ----------
-        path : str, optional
-            Directory path where plots will be saved. Default is the current working directory.
-
-        name : str, optional
-            Base name for the saved plot files. Default is ''.
-
-        extension : str, optional
-            File extension for the saved plots. Default is 'svg'.
-
-        Notes
-        -----
-        The plots are saved to the specified path with the given name and extension.
-        """
-
-        if extension == "html":
-            plots = self.get_UMAP_plots(plot_type="html", show=False)
-            if len(plots) > 0:
-
-                if not os.path.exists(path):
-                    os.makedirs(path, exist_ok=True)
-
-                for k in plots.keys():
-                    full_path = os.path.join(path, f"{name}_{k}.{extension}")
-                    pyo.plot(plots[k], filename=full_path, auto_open=False)
-
-        else:
-            plots = self.get_UMAP_plots(plot_type="static", show=False)
-            if len(plots) > 0:
-
-                if not os.path.exists(path):
-                    os.makedirs(path, exist_ok=True)
-
-                for k in plots.keys():
-                    full_path = os.path.join(path, f"{name}_{k}.{extension}")
-                    plots[k].savefig(full_path, dpi=600, bbox_inches="tight")
-
-    def save_knee_plot(self, path="", name="", extension="svg"):
-        """
-        Save the knee plot to a specified directory.
-
-        This method saves the plot generated by ``var_plot()``.
-
-        Parameters
-        ----------
-        path : str, optional
-            Directory path where the plot will be saved. Default is the current working directory.
-
-        name : str, optional
-            Base name for the saved plot file. Default is ''.
-
-        extension : str, optional
-            File extension for the saved plot. Default is 'svg'.
-
-        Notes
-        -----
-        The knee plot is saved to the specified path with the given name and extension.
-        """
-
-        if self.knee_plot is None:
-            print("\nNo results to return! Please run the var_plot() method first.")
-        else:
-            if not os.path.exists(path):
-                os.makedirs(path, exist_ok=True)
-
-            full_path = os.path.join(path, f"{name}_knee_plot.{extension}")
-            self.knee_plot.savefig(full_path, dpi=600, bbox_inches="tight")
-
     def select_data(self, features_list: list = []):
         """
         Select specific features (columns) from the dataset for further analysis.
@@ -3955,8 +3881,29 @@ class GroupAnalysis:
         """
 
         if None not in self.tmp_data:
+
+            def is_id_column(name: str):
+                name_lower = name.lower()
+                return name_lower == "id" or "id_" in name_lower or "_id" in name_lower
+
+            tmp = self.tmp_data
+
+            cols_with_strings = [
+                c
+                for c in tmp.columns
+                if tmp[c].apply(lambda x: isinstance(x, str)).any()
+            ]
+
+            cols_id_pattern = [c for c in tmp.columns if is_id_column(c)]
+
+            cols_to_drop = list(set(cols_id_pattern + cols_with_strings))
+
+            tmp = tmp.drop(columns=cols_to_drop)
+
             scaler = StandardScaler()
-            self.scaled_data = scaler.fit_transform(self.tmp_data)
+
+            self.scaled_data = scaler.fit_transform(tmp)
+
         else:
             print(
                 "\nNo data to scale. Please use the load_data() method first, and optionally the select_data() method."
@@ -3974,7 +3921,7 @@ class GroupAnalysis:
         """
 
         if None not in self.scaled_data:
-            pca = PCA(n_components=len(self.tmp_data.columns))
+            pca = PCA(n_components=self.scaled_data.shape[1])
             self.PCA_results = pca.fit_transform(self.scaled_data)
             self.explained_variance_ratio = pca.explained_variance_ratio_
         else:
@@ -4019,39 +3966,44 @@ class GroupAnalysis:
     def UMAP(
         self,
         PC_num: int = 5,
-        factorize_with_metadata: bool = True,
+        factorize_with_metadata: bool = False,
+        harmonize_sets: bool = True,
         n_neighbors: int = 25,
         min_dist: float = 0.01,
         n_components: int = 2,
     ):
         """
-        Perform UMAP (Uniform Manifold Approximation and Projection) dimensionality reduction on PCA results.
+         Perform UMAP (Uniform Manifold Approximation and Projection) dimensionality reduction on PCA results.
 
-        UMAP is applied to the top principal components, optionally using metadata labels to influence the embedding. Generates both 2D/3D embeddings and visualizations.
+         UMAP is applied to the top principal components, optionally using metadata labels to influence the embedding. Generates both 2D/3D embeddings and visualizations.
 
-        Parameters
-        ----------
-        PC_num : int, optional
-            Number of top principal components to use for UMAP embedding. Default is 5.
+         Parameters
+         ----------
+         PC_num : int, optional
+             Number of top principal components to use for UMAP embedding. Default is 5.
 
-        factorize_with_metadata : bool, optional
-            Whether to use metadata (e.g., 'sets') to factorize UMAP embedding. Default is True.
+         factorize_with_metadata : bool, optional
+             Whether to use metadata (e.g., 'sets') to factorize UMAP embedding. Default is False.
 
-        n_neighbors : int, optional
-            Number of neighbors for UMAP to compute local structure. Default is 25.
+        harmonize_sets : bool, optional
+             If True, applies harmonization across data sets before computing the UMAP embedding.
+             Default is True.
 
-        min_dist : float, optional
-            Minimum distance between points in the low-dimensional embedding. Default is 0.01.
+         n_neighbors : int, optional
+             Number of neighbors for UMAP to compute local structure. Default is 25.
 
-        n_components : int, optional
-            Number of dimensions for the UMAP embedding. Default is 2.
+         min_dist : float, optional
+             Minimum distance between points in the low-dimensional embedding. Default is 0.01.
 
-        Notes
-        -----
-        Stores results in the following attributes:
-        - `self.UMAP_data` (np.ndarray): UMAP-transformed data.
-        - `self.UMAP_plot['static']['PrimaryUMAP']` (matplotlib.figure.Figure): Static visualization of UMAP embedding.
-        - `self.UMAP_plot['html']['PrimaryUMAP']` (plotly.graph_objs.Figure): Interactive Plotly visualization of UMAP embedding.
+         n_components : int, optional
+             Number of dimensions for the UMAP embedding. Default is 2.
+
+         Notes
+         -----
+         Stores results in the following attributes:
+         - `self.UMAP_data` (np.ndarray): UMAP-transformed data.
+         - `self.UMAP_plot['static']['PrimaryUMAP']` (matplotlib.figure.Figure): Static visualization of UMAP embedding.
+         - `self.UMAP_plot['html']['PrimaryUMAP']` (plotly.graph_objs.Figure): Interactive Plotly visualization of UMAP embedding.
         """
 
         if None not in self.PCA_results:
@@ -4063,15 +4015,27 @@ class GroupAnalysis:
                 random_state=42,
             )
 
-            if factorize_with_metadata is True:
+            pca_res = self.PCA_results
+
+            if harmonize_sets:
+
+                pca_res = np.array(pca_res)
+
+                pca_res = np.array(
+                    harmonize.run_harmony(
+                        pca_res, self.input_metadata, vars_use="sets"
+                    ).Z_corr
+                ).T
+
+            if factorize_with_metadata:
                 numeric_labels = pd.Categorical(self.tmp_metadata["sets"]).codes
 
                 umap_result = reducer.fit_transform(
-                    self.PCA_results[:, : PC_num + 1], y=numeric_labels
+                    pca_res[:, : PC_num + 1], y=numeric_labels
                 )
 
             else:
-                umap_result = reducer.fit_transform(self.PCA_results[:, : PC_num + 1])
+                umap_result = reducer.fit_transform(pca_res[:, : PC_num + 1])
 
             umap_result_plot = pd.DataFrame(umap_result.copy())
 
@@ -4359,7 +4323,127 @@ class GroupAnalysis:
             )
 
         self.DFA_results = results
+        
+    def heatmap_DFA(self, p_value:float | int = 0.05, top_n:int = 5, figsize=(10,5)):
+        """
+        Generate a heatmap of the top features from DFA results filtered by p-value and log fold change.
+     
+        Parameters
+        ----------
+        p_value : float or int, optional
+            Significance threshold to filter features based on their p-value. Only features with p_val < p_value are included.
+            Default is 0.05.
+            
+        top_n : int, optional
+            Number of top features to select per group based on the 'esm' score. Default is 5.
+            
+        figsize : tuple, optional
+            Size of the resulting matplotlib figure. Default is (10, 5).
+     
+        Notes
+        -----
+        The method displays the heatmap and stores the figure in `self.DFA_plot`.
+        
+        Conditions:
+        - Only features with a positive log fold change ('log(FC)' > 0) are considered.
+        - The heatmap values represent -log10(p_value) for visualization.
+        """
+   
+        df_reduced = self.DFA_results.copy()
+        
+        df_reduced = df_reduced[df_reduced['log(FC)'] > 0]
 
+        df_reduced = df_reduced[df_reduced['p_val'] < p_value]
+        
+        df_reduced = (
+            df_reduced
+            .groupby('valid_group', group_keys=False)
+            .apply(lambda x: x.sort_values('esm', ascending=False).head(top_n))
+        )
+        
+        df_reduced['-log(p_value)'] = -np.log10(df_reduced['p_val'])
+        
+        
+        heatmap_data = df_reduced.pivot(index='feature', columns='valid_group', values='-log(p_value)').fillna(0)
+        
+        
+        figure = plt.figure(figsize=figsize)
+        sns.heatmap(heatmap_data, 
+                    cmap='viridis',
+                    linewidths=0.5, 
+                    linecolor='gray', 
+                    cbar_kws={'label': '-log10(p_value)'},
+                    fmt=".2f")       
+        plt.ylabel("Feature")
+        plt.xlabel("Cluster")
+        plt.xticks(rotation=30, ha='right')
+        
+        plt.tight_layout()
+        plt.show()
+        
+        self.DFA_plot = figure
+        
+    def get_DFA_plot(self, show: bool = True):
+        """
+        Retrieve the heatmap figure generated by `heatmap_DFA()`.
+     
+        Parameters
+        ----------
+        show : bool, optional
+            Whether to display the stored heatmap figure. Default is True.
+     
+        Returns
+        -------
+        matplotlib.figure.Figure
+            The figure object containing the DFA heatmap.
+        """
+
+        if self.DFA_plot is None:
+            print("\nNo results to return! Please run the heatmap_DFA() method first.")
+        else:
+            if show is True:
+                self.DFA_plot
+                try:
+                    display(self.DFA_plot)
+                except:
+                    None
+
+            return self.DFA_plot
+        
+        
+        df_reduced = self.DFA_results.copy()
+            
+        df_reduced = df_reduced[df_reduced['p_val'] < p_value]
+        df_reduced = df_reduced[df_reduced['log(FC)'] > 0]
+        
+        
+        df_reduced = (
+            df_reduced
+            .groupby('valid_group', group_keys=False)
+            .apply(lambda x: x.sort_values('esm', ascending=False).head(top_n))
+        )
+        
+        df_reduced['-log(p_value)'] = -np.log10(df_reduced['p_val'])
+        
+        
+        heatmap_data = df_reduced.pivot(index='feature', columns='valid_group', values='-log(p_value)').fillna(0)
+        
+        
+        figure = plt.figure(figsize=figsize)
+        sns.heatmap(heatmap_data, 
+                    cmap='viridis',
+                    linewidths=0.5, 
+                    linecolor='gray', 
+                    cbar_kws={'label': '-log10(p_value)'},
+                    fmt=".2f")       
+        plt.ylabel("Feature")
+        plt.xlabel("Cluster")
+        plt.xticks(rotation=30, ha='right')
+        
+        plt.tight_layout()
+        plt.show()
+        
+        self.DFA_plot = figure
     def print_avaiable_features(self):
         """
         Print the available features (columns) in the current dataset.
@@ -4378,7 +4462,7 @@ class GroupAnalysis:
     def proportion_analysis(
         self,
         grouping_col: str = "sets",
-        val_col: str = "nuclei_per_cell",
+        val_col: str = "nuclei_per_img",
         grouping_dict=None,
         omit=None,
     ):
@@ -4393,7 +4477,7 @@ class GroupAnalysis:
             Column to group by. Default is 'sets'.
 
         val_col : str, optional
-            Column containing the values to analyze. Default is 'nuclei_per_cell'.
+            Column containing the values to analyze. Default is 'nuclei_per_img'.
 
         grouping_dict : dict or None, optional
             Dictionary mapping new group names to categories in `grouping_col`. If None, analysis is based on the original groups.
@@ -4413,7 +4497,7 @@ class GroupAnalysis:
         -------
         >>> group_analysis.proportion_analysis(
         ...     grouping_col='sets',
-        ...     val_col='nuclei_per_cell',
+        ...     val_col='nuclei_per_img',
         ...     grouping_dict={'Group A': [1, 2], 'Group B': [3, 4]},
         ...     omit=5
         ... )
@@ -4472,7 +4556,7 @@ class GroupAnalysis:
         """
 
         if self.proportion_plot is None:
-            print("\nNo results to return! Please run the var_plot() method first.")
+            print("\nNo results to return! Please run the proportion_analysis() method first.")
         else:
             if show is True:
                 self.proportion_plot
@@ -4482,35 +4566,6 @@ class GroupAnalysis:
                     None
 
             return self.proportion_plot
-
-    def save_proportion_plot(self, path="", name="", extension="svg"):
-        """
-        Save the proportion bar plot generated by the `proportion_analysis()` method to a specified directory.
-
-        Parameters
-        ----------
-        path : str, optional
-            Directory path where the plot will be saved. Default is the current working directory.
-
-        name : str, optional
-            Base name for the saved plot file. Default is an empty string.
-
-        extension : str, optional
-            File extension for the saved plot. Default is 'svg'.
-
-        Notes
-        -----
-        The method saves the proportion bar plot to the specified path with the given name and extension.
-        """
-
-        if self.proportion_plot is None:
-            print("\nNo results to return! Please run the var_plot() method first.")
-        else:
-            if not os.path.exists(path):
-                os.makedirs(path, exist_ok=True)
-
-            full_path = os.path.join(path, f"{name}_proportion_bar_plot.{extension}")
-            self.proportion_plot.savefig(full_path, dpi=600, bbox_inches="tight")
 
     def get_proportion_stats(self):
         """
@@ -4523,6 +4578,6 @@ class GroupAnalysis:
         """
 
         if None in self.proportion_stats:
-            print("\nNo results to return! Please run the var_plot() method first.")
+            print("\nNo results to return! Please run the proportion_analysis() method first.")
         else:
             return self.proportion_stats

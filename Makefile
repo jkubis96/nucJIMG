@@ -1,11 +1,11 @@
 .PHONY: format lint check all
 
 format:
-	isort jimgfl
-	black jimgfl
+	isort jimg_ncd
+	black jimg_ncd
 
 lint:
-	pylint --exit-zero --disable=import-error,no-member jimgfl
+	pylint --exit-zero --disable=import-error,no-member jimg_ncd
 
 	
 
