@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JIMG_ncd – Python library for automated nucleus detection and analysis</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background-color: #1e2a35;
+      color: #e6e6e6;
+      font-family: "Segoe UI", Arial, sans-serif;
+      line-height: 2;
+      overflow: hidden;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+    background-color: #1e1e1e;
+    padding: 0.5rem 1.5rem;
+    border-bottom: 1px solid #000000;
+    position: relative; 
+    display: flex;
+    align-items: center;
+    justify-content: center; 
+    }
+
+    header img.logo {
+    position: absolute; 
+    left: 2.5rem; 
+    height: 55px;
+    width: auto;
+    border-radius: 10px;
+    border: 2px solid rgb(107, 5, 5); 
+    }
+
+    
+
+    header h1 {
+      font-size: 2rem;
+      margin: 0;
+      color: #971515;
+      letter-spacing: 1px;
+    }
+
+    .main {
+      display: flex;
+      flex: 1;
+      height: calc(100vh - 110px); 
+    }
+
+    nav.sidebar {
+      width: 200px;
+      background-color: #1e1e1e;
+      padding: 1rem;
+      box-sizing: border-box;
+    }
+
+    nav.sidebar p.description {
+      color: #cfd8dc;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+      text-align: center;
+    }
+
+    nav.sidebar a {
+      color: #cfd8dc;
+      text-decoration: none;
+      display: block;
+      margin-bottom: 0.5rem;
+      padding: 0.3rem 0;
+      font-size: 0.95rem;
+      text-align: center;
+      width: 100%;
+    }
+
+    nav.sidebar a:hover {
+      color: #850000;
+    }
+
+    main {
+      flex: 1;
+      padding: 1.5rem;
+      overflow: auto;
+    }
+
+    p.description {
+      color: #cfd8dc;
+      font-size: 1rem;
+      max-width: 1200px;
+      margin: 0 auto;       
+      text-align: justify;   
+    }
+
+    footer {
+      text-align: center;
+      padding: 0.5rem;
+      background-color: #1e1e1e;
+      color: #b0bec5;
+      border-top: 1px solid #000000;
+      font-size: 0.85rem;
+    }
+
+    a {
+      color: #b9b9b9;
+      text-decoration: none;
+    }
+
+    main {
+    flex: 1;
+    padding: 1.5rem;
+    overflow: auto; 
+    background-color: #302d2d; 
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      .main {
+        flex-direction: column;
+        height: auto;
+      }
+      nav.sidebar {
+        width: 100%;
+      }
+      body {
+        overflow: auto;
+        line-height: 1.6;
+      }
+      header {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <img class="logo" src="https://github.com/jkubis96/Logos/blob/main/logos/short.png?raw=true" alt="scdiff logo">
+    <h1>JIMG_ncd</h1>
+  </header>
+
+  <div class="main">
+    <nav class="sidebar">
+      <p class="description"><strong>Modules</strong></p>
+      <a href="jimg_ncd/nuclei.html">nuclei</a>
+      <a href="jimg_ncd/utils.html">utils</a>
+      <div style="height: 20px;"></div> 
+      <a href="https://github.com/jkubis96/JIMG_ncd"><strong>Back GitHub</strong></a>
+
+    </nav>
+
+    <main>
+      <p class="description">
+       
+       
+      <strong>JIMG_ncd</strong> is a Python library designed for DL based automated nucleus detection and analysis in high-resolution images from confocal microscopy and flow cytometry, eg. Amnis-ImageStream. It facilitates in-depth examination of nuclei and their chromatin organization, enabling precise analysis of nuclear morphology and chromatin structure.
+
+      Additionally, JIMG_ncd provides advanced tools for analyzing cell populations from cytometric data. Users can select distinctive cellular features, cluster cells based on these characteristics, and apply statistical analyses to uncover unique features within each cluster.
+ 
+      </p>
+    </main>
+  </div>
+
+  <footer>
+    Author: Jakub Kubis – JBioSystem &copy; <span id="year"></span>
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
