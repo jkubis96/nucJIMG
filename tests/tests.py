@@ -636,7 +636,7 @@ UMAP_plots = ga.get_UMAP_plots(show=True)
 UMAP_plots.keys()
 
 UMAP_plots["ClusterUMAP"].savefig("UMAP_clusters.png", dpi=300)
-UMAP_plots["ClusterUMAP"].savefig("ClusterXSetsUMAP.png", dpi=300)
+UMAP_plots["ClusterXSetsUMAP"].savefig("ClusterXSetsUMAP.png", dpi=300)
 ###############################################################################
 
 
