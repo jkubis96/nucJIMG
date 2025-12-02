@@ -61,7 +61,7 @@ Additionally, JIMG_ncd provides advanced tools for analyzing cell populations fr
     - 3.2.4 [Extracting nuclei chromanitization features](#nafc4)
     - 3.2.5 [Adjusting nuclei chromanitization parameters](#nafc5)
     - 3.2.6 [Analyzing nuclei chromatinization series](#nafc6)
-    - 3.2.7 [Concatenating nuclei chromatinization analysis with ImageStream (IS) data](#nafc7)
+    - 3.2.7 [Obtaining nuclei chromatinization series analysis results](#nafc7)
     - 3.2.8 [Concatenating nuclei chromatinization analysis with ImageStream (IS) data](#nafc8)
     - 3.2.9 [Combining projects from nuclei chromatinization analysi](#nafc9)
 
