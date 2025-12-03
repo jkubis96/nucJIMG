@@ -82,7 +82,7 @@ Additionally, JIMG_ncd provides advanced tools for analyzing cell populations fr
 #### In command line write:
 
 ```
-pip install jimg_ncd
+pip install jimg-ncd
 ```
 
 
