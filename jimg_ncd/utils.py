@@ -85,7 +85,7 @@ def umap_static(umap_result, width=10, height=13, n_per_col=20):
 
     height : float, optional
         Height of the figure in inches. Default is 13.
-        
+
     n_per_col : int, optional
         Maximum number of legend entries per column. Default is 20.
 
@@ -125,17 +125,13 @@ def umap_static(umap_result, width=10, height=13, n_per_col=20):
             edgecolor="black",
             linewidths=0.1,
         )
-    
+
     n_col = -(-len(set(umap_result["clusters"])) // n_per_col)
-    
+
     plt.xlabel("UMAP 1", fontsize=14)
     plt.ylabel("UMAP 2", fontsize=14)
     plt.grid(True, which="both", linestyle="--", linewidth=0.1)
-    plt.legend(
-    bbox_to_anchor=(1.05, 1),
-    loc="upper left",
-    ncol=n_col
-    )
+    plt.legend(bbox_to_anchor=(1.05, 1), loc="upper left", ncol=n_col)
     plt.tight_layout()
 
     return fig
@@ -155,7 +151,7 @@ def test_data(path=""):
     path : str, optional
         Destination directory where the test dataset will be downloaded and
         extracted. Defaults to the current working directory.
-        
+
 
     Notes
     -----
