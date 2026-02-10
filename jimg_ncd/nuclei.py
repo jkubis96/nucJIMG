@@ -3990,6 +3990,8 @@ class GroupAnalysis:
         n_neighbors: int = 25,
         min_dist: float = 0.01,
         n_components: int = 2,
+        width: int = 8, 
+        height: int = 6,
     ):
         """
          Perform UMAP (Uniform Manifold Approximation and Projection) dimensionality reduction on PCA results.
@@ -4016,6 +4018,12 @@ class GroupAnalysis:
 
          n_components : int, optional
              Number of dimensions for the UMAP embedding. Default is 2.
+             
+         width : int, optional
+             Width of the generated matplotlib figures (in inches). Default is 8.
+    
+         height : int, optional
+             Height of the generated matplotlib figures (in inches). Default is 6.
 
          Notes
          -----
@@ -4060,9 +4068,9 @@ class GroupAnalysis:
 
             umap_result_plot["clusters"] = list(self.tmp_metadata["sets"])
 
-            static_fig = umap_static(umap_result_plot, width=8, height=6)
+            static_fig = umap_static(umap_result_plot, width=width, height=height)
 
-            html_fig = umap_html(umap_result_plot, width=800, height=600)
+            html_fig = umap_html(umap_result_plot, width=width*100, height=height*100)
 
             self.UMAP_data = umap_result
 
@@ -4106,7 +4114,7 @@ class GroupAnalysis:
 
     def UMAP_on_clusters(self, min_entities: int = 50,
                          width: int = 8, 
-                         heigh: int = 6,
+                         height: int = 6,
                          n_per_col: int = 20,
                          ):
         
@@ -4128,7 +4136,7 @@ class GroupAnalysis:
         width : int, optional
             Width of the generated matplotlib figures (in inches). Default is 8.
     
-        heigh : int, optional
+        height : int, optional
             Height of the generated matplotlib figures (in inches). Default is 6.
     
         n_per_col : int, optional

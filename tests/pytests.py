@@ -211,37 +211,6 @@ def test_group_analysis():
     assert not full_data.empty
 
 
-def test_group_analysis():
-    data = pd.read_csv(
-        "healthy_chromatinization_disease_chromatinization_IS.csv", sep=",", header=0
-    )
-    ga = GroupAnalysis.load_data(data, ids_col="id_name", set_col="set")
-    ga.DFA(
-        meta_group_by="sets",
-        sets={
-            "disease": ["disease_chromatinization"],
-            "ctrl": ["healthy_chromatinization"],
-        },
-        n_proc=1,
-    )
-    dfa_results = ga.get_DFA()
-    assert not dfa_results.empty
-    ga.data_scale()
-    ga.PCA()
-    ga.UMAP(
-        PC_num=8,
-        factorize_with_metadata=False,
-        harmonize_sets=True,
-        n_neighbors=10,
-        min_dist=0.01,
-        n_components=2,
-    )
-    ga.db_scan(eps=0.5, min_samples=10)
-    ga.UMAP_on_clusters(min_entities=5)
-    full_data = ga.full_info()
-    assert not full_data.empty
-
-
 def test_proportion_analysis():
 
     data = pd.read_csv(
