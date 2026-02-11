@@ -4452,10 +4452,9 @@ class GroupAnalysis:
             .head(top_n)
         )
 
-        df_reduced["-log(p_value)"] = -np.log10(df_reduced["p_val"])
 
         heatmap_data = df_reduced.pivot(
-            index="feature", columns="valid_group", values="-log(p_value)"
+            index="feature", columns="valid_group", values="-log(p_val)"
         ).fillna(0)
 
         label = "-log10(p_value)"

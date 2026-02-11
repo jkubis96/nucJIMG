@@ -512,10 +512,10 @@ def statistic(input_df, sets=None, metadata=None, n_proc=10):
                 valid = combined_df["avg_valid"].where(
                     combined_df["avg_valid"] != 0,
                     combined_df["avg_valid"] + valid_factor,
-                )
+                ) + offset
                 ctrl = combined_df["avg_ctrl"].where(
                     combined_df["avg_ctrl"] != 0, combined_df["avg_ctrl"] + ctrl_factor
-                )
+                ) + offset
 
                 combined_df["FC"] = valid / ctrl
 
@@ -588,7 +588,7 @@ def statistic(input_df, sets=None, metadata=None, n_proc=10):
                 valid = combined_df["avg_valid"].where(
                     combined_df["avg_valid"] != 0,
                     combined_df["avg_valid"] + valid_factor,
-                )
+                ) + offset
                 ctrl = combined_df["avg_ctrl"].where(
                     combined_df["avg_ctrl"] != 0, combined_df["avg_ctrl"] + ctrl_factor
                 )
@@ -598,7 +598,7 @@ def statistic(input_df, sets=None, metadata=None, n_proc=10):
                 combined_df["log(FC)"] = np.log2(combined_df["FC"])
                 combined_df["norm_diff"] = (
                     combined_df["avg_valid"] - combined_df["avg_ctrl"]
-                )
+                ) + offset
 
                 full_df = pd.concat([full_df, combined_df])
 
