@@ -100,14 +100,8 @@ def umap_static(umap_result, width=10, height=13, n_per_col=20):
 
     fig = plt.figure(figsize=(width, height))
 
-    cluster_counts = {
-        label: np.sum(umap_result["clusters"] == label)
-        for label in np.unique(umap_result["clusters"])
-    }
 
-    sorted_labels = sorted(
-        cluster_counts, key=lambda label: cluster_counts[label], reverse=True
-    )
+    sorted_labels = pd.unique(umap_result["clusters"])
 
     color_map = {
         label: plotly_colors[i % num_colors] for i, label in enumerate(sorted_labels)
