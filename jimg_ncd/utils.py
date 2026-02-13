@@ -212,7 +212,7 @@ def prop_plot(df_pivot, chi_df):
 
     df_pivot_perc = df_pivot.div(df_pivot.sum(axis=0), axis=1) * 100
 
-    df_pivot_perc = df_pivot_perc.sort_values(by=1, axis=1)
+    chi_df = chi_df.sort_values(by="p-value", ascending=True)
 
     df_pivot_perc = df_pivot_perc.T.sort_values(by=list(df_pivot_perc.index)).T
 
