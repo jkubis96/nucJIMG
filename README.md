@@ -1314,7 +1314,7 @@ indm.image_merging(acronyms = ['bright', 'DAPI'],
 ***Merged image:***
 
 <p align="center">
-<img  src="https://raw.githubusercontent.com/jkubis96/JIMG_ncd/refs/heads/images_management/fig/FlowCytometry_nuclei/18414_bright_DAPI.png" alt="drawing" width="500" />
+<img  src="https://raw.githubusercontent.com/jkubis96/JIMG_ncd/refs/heads/images_management/fig/FlowCytometry_nuclei/18414_bright_DAPI.png" alt="drawing" width="250" />
 </p>
 
 <br/>
@@ -1341,12 +1341,12 @@ indm.save_prepared_images(acronyme = 'merged_bright_DAPI', path_to_save = '')
 ***Saved images:***
 
 <p align="center">
-<img  src="https://raw.githubusercontent.com/jkubis96/JIMG_ncd/refs/heads/images_management/fig/FlowCytometry_nuclei/saved.bmp" alt="drawing" width="500" />
+<img  src="https://raw.githubusercontent.com/jkubis96/JIMG_ncd/refs/heads/images_management/fig/FlowCytometry_nuclei/saved.bmp" alt="drawing" width="650" />
 </p>
 
 
 <p align="center">
-<img  src="https://raw.githubusercontent.com/jkubis96/JIMG_ncd/refs/heads/images_management/fig/FlowCytometry_nuclei/saved2.bmp" alt="drawing" width="500" />
+<img  src="https://raw.githubusercontent.com/jkubis96/JIMG_ncd/refs/heads/images_management/fig/FlowCytometry_nuclei/saved2.bmp" alt="drawing" width="650" />
 </p>
 
 
