@@ -67,12 +67,20 @@ Additionally, JIMG_ncd provides advanced tools for analyzing cell populations fr
 
   - 3.3. [Clustering and DFA (Differential Feature Analysis) – nuclei data](#cdnd)
     - 3.3.1 [Selecting feature analysis (DFA) for separate experiments data](#cdnd1)
-    - 3.3.2 [Filtering project data to selected features](#cdnd2)
+    - 3.3.2 [Loading images IDs](#cdnd2)
     - 3.3.3 [Performing data scaling and dimensionality reduction](#cdnd3)
     - 3.3.4 [Performing UMAP & clustering](#cdnd4)
     - 3.3.5 [Obtaining complete data and metadata (clusters)](#cdnd5)
     - 3.3.6 [Preforming DFA analysis on clusters](#cdnd6)
     - 3.3.7 [Preforming proportion analysis](#cdnd7)
+  - 3.4. [ImagesManagement – nuclei data](#im)
+    - 3.4.1 [Loading & saving raw data from project](#im1)
+    - 3.4.2 [Filtering project data to selected features](#im2)
+    - 3.4.3 [Loading saved project with images](#im3)
+    - 3.4.4 [Adjusting a series of images](#im4)
+    - 3.4.5 [Stitching images](#im5)
+    - 3.4.6 [Merging images](#im6)
+    - 3.4.7 [Saving a series of images](#im7)
 <br />
 
 <br />
@@ -1180,6 +1188,166 @@ ga.get_proportion_stats()
 <img  src="https://raw.githubusercontent.com/jkubis96/JIMG_ncd/refs/heads/documentation/fig/DFA_analysis_nuclei/proportion.png" alt="drawing" width="600" />
 </p>
 
+
+
+
+<br/>
+
+<br/>
+
+
+#### 3.4 ImagesManagement – nuclei data <a id="im"></a>
+
+##### 3.4.1 Loading & saving raw data from project <a id="im1"></a>
+
+
+```                                      
+from jimg_ncd.nuclei import ImagesManagement
+
+# load dictionary data obtained from series_analysis_chromatinization() 
+# or series_analysis_nuclei() with include_img = True
+
+indm = ImagesManagement.load_experimental_images(series_results_chromatinization, 'disease')
+
+indm.save_raw(path_to_save = '')
+```
+<br/>
+
+##### 3.4.2 Loading images IDs <a id="im2"></a>
+
+
+```                                      
+from jimg_ncd.nuclei import ImagesManagement
+
+# instead of loading dictionary data obtained from 
+# series_analysis_chromatinization() or series_analysis_nuclei() 
+# only image IDs to adjust can be loaded
+
+images_ids = [1523, 1528, 1589, 1335]
+
+indm = ImagesManagement.load_images_ids(images_ids = images_ids, experiment_name = 'disease')
+```
+<br/>
+
+##### 3.4.3 Loading saved project with images <a id="im3"></a>
+
+
+```                                      
+from jimg_ncd.nuclei import ImagesManagement
+
+# loading whole project with data obtained from  
+# series_analysis_chromatinization() or series_analysis_nuclei() 
+# saved using self.save_raw(path_to_save = '')
+
+indm = ImagesManagement.load_from_dict('disease.inuc.npz', 'disease')
+```
+<br/>
+
+##### 3.4.4 Adjusting a series of images <a id="im4"></a>
+
+
+```                                      
+indm.adjust_images(acronyme='bright', 
+                      color='gray', 
+                      path_to_images='test_data/flow_cytometry/dis', 
+                      fille_name_part='Ch9.ome', 
+                      eq = False, 
+                      clahe = False, 
+                      gamma = 0.7, 
+                      contrast = 1.2)
+
+indm.adjust_images(acronyme='DAPI', 
+                      color='blue', 
+                      path_to_images='test_data/flow_cytometry/dis', 
+                      fille_name_part='Ch7.ome', 
+                      eq = True, 
+                      clahe = True, 
+                      gamma = 2, 
+                      contrast = 1.2)
+```
+<br/>
+
+
+
+##### 3.4.5 Stitching images <a id="im5"></a>
+
+
+```         
+# check available image acronyms defined in adjust_images
+indm.get_included_acronyms()
+
+# Stitch result images loaded from the project
+# if they were loaded using:
+#  - 3.4.3 Loading a saved project with images
+#  - 3.4.1 Loading & saving raw data from the project
+
+indm.image_stitching(acronyms=['bright'], to_results_image=True)
+
+# you can also stitch different adjusted images with different acronyms,
+# even if they were loaded using 3.4.2 Loading image IDs
+
+indm.image_stitching(acronyms=['bright', 'DAPI'], to_results_image=False) 
+```
+
+<br/>
+
+***Stitched image:***
+
+<p align="center">
+<img  src="https://raw.githubusercontent.com/jkubis96/JIMG_ncd/refs/heads/images_management/fig/FlowCytometry_nuclei/18171_bright_res.png" alt="drawing" width="500" />
+</p>
+
+<br/>
+
+##### 3.4.6 Merging images <a id="im6"></a>
+
+```         
+# check available image acronyms defined in adjust_images
+indm.get_included_acronyms()
+
+indm.image_merging(acronyms = ['bright', 'DAPI'], 
+                   ratio_list = [0.9,0.6])  
+```
+<br/>
+
+
+***Merged image:***
+
+<p align="center">
+<img  src="https://raw.githubusercontent.com/jkubis96/JIMG_ncd/refs/heads/images_management/fig/FlowCytometry_nuclei/18414_bright_DAPI.png" alt="drawing" width="500" />
+</p>
+
+<br/>
+
+
+##### 3.4.7 Saving a series of images <a id="im7"></a>
+
+```         
+# check available image acronyms defined in adjust_images, image_stitching and image_merging
+
+indm.get_included_acronyms()
+
+
+indm.save_prepared_images(acronyme = 'stitched_bright',  path_to_save = '')
+
+indm.save_prepared_images(acronyme = 'stitched_bright_DAPI', path_to_save = '')
+
+indm.save_prepared_images(acronyme = 'merged_bright_DAPI', path_to_save = '')
+```
+
+<br/>
+
+
+***Saved images:***
+
+<p align="center">
+<img  src="https://raw.githubusercontent.com/jkubis96/JIMG_ncd/refs/heads/images_management/fig/FlowCytometry_nuclei/saved.bmp" alt="drawing" width="500" />
+</p>
+
+
+<p align="center">
+<img  src="https://raw.githubusercontent.com/jkubis96/JIMG_ncd/refs/heads/images_management/fig/FlowCytometry_nuclei/saved2.bmp" alt="drawing" width="500" />
+</p>
 
 
 <br />

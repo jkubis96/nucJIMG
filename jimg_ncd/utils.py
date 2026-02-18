@@ -456,11 +456,10 @@ def statistic(input_df, sets=None, metadata=None, n_proc=10):
                 "esm": esm,
             }
 
-
         def safe_min_half(series):
-            filtered = series[(series > ((2**-1074)*2)) & (series.notna())]
+            filtered = series[(series > ((2**-1074) * 2)) & (series.notna())]
             return filtered.min() / 2 if not filtered.empty else 0
-        
+
         # Transpose the input DataFrame
         choose = input_df.copy().T
 

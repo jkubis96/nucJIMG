@@ -632,7 +632,7 @@ class ImagesManagement:
 
     def get_prepared_images(self, acronyme=None):
         """
-        Retrieves the prepared images (returned from preapre_selected_img()) stored in the object.
+        Retrieves the prepared images (returned from adjust_images()) stored in the object.
 
 
         Parameters
@@ -660,7 +660,7 @@ class ImagesManagement:
 
     def save_prepared_images(self, acronyme: str, path_to_save: str = ""):
         """
-        Saves prepared images (returned from preapre_selected_img() method) to the specified directory.
+        Saves prepared images (returned from adjust_images() method) to the specified directory.
 
         Parameters
         ----------
